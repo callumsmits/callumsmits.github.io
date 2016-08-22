@@ -73,11 +73,11 @@
 	
 	var _index2 = _interopRequireDefault(_index);
 	
-	var _app = __webpack_require__(206);
+	var _app = __webpack_require__(207);
 	
 	var _app2 = _interopRequireDefault(_app);
 	
-	var _actions = __webpack_require__(226);
+	var _actions = __webpack_require__(227);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -85,7 +85,8 @@
 	  return f;
 	}));
 	
-	store.dispatch((0, _actions.startMonitoringDistance)());
+	// store.dispatch(startMonitoringDistance());
+	store.dispatch((0, _actions.getInitialSecureState)());
 	
 	var root = document.createElement('div');
 	document.body.appendChild(root);
@@ -23121,12 +23122,17 @@
 	
 	var _distanceRequest2 = _interopRequireDefault(_distanceRequest);
 	
+	var _demo = __webpack_require__(206);
+	
+	var _demo2 = _interopRequireDefault(_demo);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	var garageReducer = (0, _redux.combineReducers)({
 	  secure: _secure2.default,
 	  door: _door2.default,
-	  distanceRequest: _distanceRequest2.default
+	  distanceRequest: _distanceRequest2.default,
+	  demo: _demo2.default
 	});
 	
 	exports.default = garageReducer;
@@ -23195,11 +23201,11 @@
 	          return state;
 	      }
 	    case actionTypes.MEASURED_DISTANCE:
-	      if (action.payload > constants.closedDistanceThreshold) {
+	      if ((state.position === 'OPEN' || state.position === 'UNKNOWN') && action.payload > constants.closedDistanceThreshold) {
 	        return { position: 'CLOSED' };
 	      }
-	      if (state.position === 'CLOSED' && action.payload < constants.closedDistanceThreshold) {
-	        return { position: 'UNKNOWN' };
+	      if ((state.position === 'CLOSED' || state.position === 'UNKNOWN') && action.payload < constants.closedDistanceThreshold) {
+	        return { position: 'OPEN' };
 	      }
 	      return state;
 	    default:
@@ -23222,7 +23228,7 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	var closedDistanceThreshold = exports.closedDistanceThreshold = 20; // cm
+	var closedDistanceThreshold = exports.closedDistanceThreshold = 100; // cm
 	
 	var garageDeviceAddress = exports.garageDeviceAddress = 'http://garage.local';
 	
@@ -23239,7 +23245,7 @@
 	
 	var garageSecureTurnOnDelay = exports.garageSecureTurnOnDelay = turnOnDelay;
 	
-	var doorMovementDelay = 5000;
+	var doorMovementDelay = 17000;
 	if (process.env.NODE_ENV === 'test') {
 	  doorMovementDelay = 30;
 	}
@@ -23291,6 +23297,8 @@
 	var TURN_OFF_REQUEST_COMPLETE = exports.TURN_OFF_REQUEST_COMPLETE = 'TURN_OFF_REQUEST_COMPLETE';
 	var DISTANCE_REQUEST = exports.DISTANCE_REQUEST = 'DISTANCE_REQUEST';
 	var DISTANCE_REQUEST_COMPLETE = exports.DISTANCE_REQUEST_COMPLETE = 'DISTANCE_REQUEST_COMPLETE';
+	var INITIAL_SET_SECURE_STATE = exports.INITIAL_SET_SECURE_STATE = 'INITIAL_SET_SECURE_STATE';
+	var ENABLE_DEMO_MODE = exports.ENABLE_DEMO_MODE = 'ENABLE_DEMO_MODE';
 	
 	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "actionTypes.js" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
 
@@ -23349,6 +23357,11 @@
 	          return 'ON';
 	        }
 	        return 'OFF';
+	      }
+	      return state;
+	    case actionTypes.INITIAL_SET_SECURE_STATE:
+	      if (!action.error) {
+	        return action.payload;
 	      }
 	      return state;
 	    default:
@@ -23414,37 +23427,25 @@
 	  value: true
 	});
 	
-	var _react = __webpack_require__(2);
+	var _actionTypes = __webpack_require__(203);
 	
-	var _react2 = _interopRequireDefault(_react);
+	var actionTypes = _interopRequireWildcard(_actionTypes);
 	
-	var _header = __webpack_require__(207);
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 	
-	var _header2 = _interopRequireDefault(_header);
+	var demo = function demo() {
+	  var state = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
+	  var action = arguments[1];
 	
-	var _currentStateDisplay = __webpack_require__(212);
-	
-	var _currentStateDisplay2 = _interopRequireDefault(_currentStateDisplay);
-	
-	var _currentStateChangeButton = __webpack_require__(225);
-	
-	var _currentStateChangeButton2 = _interopRequireDefault(_currentStateChangeButton);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	var App = function App() {
-	  return _react2.default.createElement(
-	    'div',
-	    null,
-	    _react2.default.createElement(_header2.default, null),
-	    _react2.default.createElement(_currentStateDisplay2.default, null),
-	    _react2.default.createElement(_currentStateChangeButton2.default, null)
-	  );
+	  if (action.type === actionTypes.ENABLE_DEMO_MODE) {
+	    return true;
+	  }
+	  return state;
 	};
 	
-	exports.default = App;
+	exports.default = demo;
 	
-	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "app.jsx" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
+	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "demo.js" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
 
 /***/ },
 /* 207 */
@@ -23463,6 +23464,55 @@
 	var _react2 = _interopRequireDefault(_react);
 	
 	var _header = __webpack_require__(208);
+	
+	var _header2 = _interopRequireDefault(_header);
+	
+	var _currentStateDisplay = __webpack_require__(213);
+	
+	var _currentStateDisplay2 = _interopRequireDefault(_currentStateDisplay);
+	
+	var _currentStateChangeButton = __webpack_require__(226);
+	
+	var _currentStateChangeButton2 = _interopRequireDefault(_currentStateChangeButton);
+	
+	var _currentDemoIndicator = __webpack_require__(239);
+	
+	var _currentDemoIndicator2 = _interopRequireDefault(_currentDemoIndicator);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var App = function App() {
+	  return _react2.default.createElement(
+	    'div',
+	    null,
+	    _react2.default.createElement(_currentDemoIndicator2.default, null),
+	    _react2.default.createElement(_header2.default, null),
+	    _react2.default.createElement(_currentStateDisplay2.default, null),
+	    _react2.default.createElement(_currentStateChangeButton2.default, null)
+	  );
+	};
+	
+	exports.default = App;
+	
+	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "app.jsx" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
+
+/***/ },
+/* 208 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* REACT HOT LOADER */ if (false) { (function () { var ReactHotAPI = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-api/modules/index.js"), RootInstanceProvider = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/RootInstanceProvider.js"), ReactMount = require("react/lib/ReactMount"), React = require("react"); module.makeHot = module.hot.data ? module.hot.data.makeHot : ReactHotAPI(function () { return RootInstanceProvider.getRootInstances(ReactMount); }, React); })(); } try { (function () {
+	
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _react = __webpack_require__(2);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _header = __webpack_require__(209);
 	
 	var _header2 = _interopRequireDefault(_header);
 	
@@ -23485,16 +23535,16 @@
 	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "header.jsx" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
 
 /***/ },
-/* 208 */
+/* 209 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 	
 	// load the styles
-	var content = __webpack_require__(209);
+	var content = __webpack_require__(210);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(211)(content, {});
+	var update = __webpack_require__(212)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -23511,10 +23561,10 @@
 	}
 
 /***/ },
-/* 209 */
+/* 210 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(210)();
+	exports = module.exports = __webpack_require__(211)();
 	// imports
 	exports.push([module.id, "@import url(https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300);", ""]);
 	
@@ -23527,7 +23577,7 @@
 	};
 
 /***/ },
-/* 210 */
+/* 211 */
 /***/ function(module, exports) {
 
 	/*
@@ -23583,7 +23633,7 @@
 
 
 /***/ },
-/* 211 */
+/* 212 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -23835,7 +23885,7 @@
 
 
 /***/ },
-/* 212 */
+/* 213 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* REACT HOT LOADER */ if (false) { (function () { var ReactHotAPI = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-api/modules/index.js"), RootInstanceProvider = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/RootInstanceProvider.js"), ReactMount = require("react/lib/ReactMount"), React = require("react"); module.makeHot = module.hot.data ? module.hot.data.makeHot : ReactHotAPI(function () { return RootInstanceProvider.getRootInstances(ReactMount); }, React); })(); } try { (function () {
@@ -23848,7 +23898,7 @@
 	
 	var _reactRedux = __webpack_require__(176);
 	
-	var _stateDisplay = __webpack_require__(213);
+	var _stateDisplay = __webpack_require__(214);
 	
 	var _stateDisplay2 = _interopRequireDefault(_stateDisplay);
 	
@@ -23868,7 +23918,7 @@
 	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "currentStateDisplay.jsx" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
 
 /***/ },
-/* 213 */
+/* 214 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* REACT HOT LOADER */ if (false) { (function () { var ReactHotAPI = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-api/modules/index.js"), RootInstanceProvider = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/RootInstanceProvider.js"), ReactMount = require("react/lib/ReactMount"), React = require("react"); module.makeHot = module.hot.data ? module.hot.data.makeHot : ReactHotAPI(function () { return RootInstanceProvider.getRootInstances(ReactMount); }, React); })(); } try { (function () {
@@ -23885,15 +23935,15 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _reactFontawesome = __webpack_require__(214);
-	
-	var _reactFontawesome2 = _interopRequireDefault(_reactFontawesome);
-	
 	var _fontAwesome = __webpack_require__(215);
 	
 	var _fontAwesome2 = _interopRequireDefault(_fontAwesome);
 	
-	var _stateDisplay = __webpack_require__(223);
+	var _reactFontAwesome = __webpack_require__(223);
+	
+	var _reactFontAwesome2 = _interopRequireDefault(_reactFontAwesome);
+	
+	var _stateDisplay = __webpack_require__(224);
 	
 	var _stateDisplay2 = _interopRequireDefault(_stateDisplay);
 	
@@ -23960,7 +24010,7 @@
 	    _react2.default.createElement(
 	      'div',
 	      { className: _stateDisplay2.default.innerbox },
-	      _react2.default.createElement(_reactFontawesome2.default, _extends({}, secureProps, {
+	      _react2.default.createElement(_reactFontAwesome2.default, _extends({}, secureProps, {
 	        size: '2x',
 	        fixedWidth: true,
 	        className: _stateDisplay2.default.icon,
@@ -23985,173 +24035,6 @@
 	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "stateDisplay.jsx" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
 
 /***/ },
-/* 214 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-	
-	var _react = __webpack_require__(2);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
-	
-	/**
-	 * A React component for the font-awesome icon library.
-	 *
-	 *
-	 * @param {Boolean} [border=false] Whether or not to show a border radius
-	 * @param {String} [className] An extra set of CSS classes to add to the component
-	 * @param {Object} [cssModule] Option to pass FontAwesome CSS as a module
-	 * @param {Boolean} [fixedWidth=false] Make buttons fixed width
-	 * @param {String} [flip=false] Flip the icon's orientation.
-	 * @param {Boolean} [inverse=false]Inverse the icon's color
-	 * @param {String} name Name of the icon to use
-	 * @param {Boolean} [pulse=false] Rotate icon with 8 steps (rather than smoothly)
-	 * @param {Number} [rotate] The degress to rotate the icon by
-	 * @param {String} [size] The icon scaling size
-	 * @param {Boolean} [spin=false] Spin the icon
-	 * @param {String} [stack] Stack an icon on top of another
-	 * @module FontAwesome
-	 * @type {ReactClass}
-	 */
-	exports.default = _react2.default.createClass({
-	
-	  displayName: 'FontAwesome',
-	
-	  propTypes: {
-	    border: _react2.default.PropTypes.bool,
-	    className: _react2.default.PropTypes.string,
-	    cssModule: _react2.default.PropTypes.object,
-	    fixedWidth: _react2.default.PropTypes.bool,
-	    flip: _react2.default.PropTypes.oneOf(['horizontal', 'vertical']),
-	    inverse: _react2.default.PropTypes.bool,
-	    name: _react2.default.PropTypes.string.isRequired,
-	    pulse: _react2.default.PropTypes.bool,
-	    rotate: _react2.default.PropTypes.oneOf([90, 180, 270]),
-	    size: _react2.default.PropTypes.oneOf(['lg', '2x', '3x', '4x', '5x']),
-	    spin: _react2.default.PropTypes.bool,
-	    stack: _react2.default.PropTypes.oneOf(['1x', '2x'])
-	  },
-	
-	  render: function render() {
-	    var _props = this.props;
-	    var border = _props.border;
-	    var cssModule = _props.cssModule;
-	    var fixedWidth = _props.fixedWidth;
-	    var flip = _props.flip;
-	    var inverse = _props.inverse;
-	    var name = _props.name;
-	    var pulse = _props.pulse;
-	    var rotate = _props.rotate;
-	    var size = _props.size;
-	    var spin = _props.spin;
-	    var stack = _props.stack;
-	
-	    var props = _objectWithoutProperties(_props, ['border', 'cssModule', 'fixedWidth', 'flip', 'inverse', 'name', 'pulse', 'rotate', 'size', 'spin', 'stack']);
-	
-	    var className = '';
-	    if (cssModule) {
-	      className = cssModule.fa + ' ' + cssModule['fa-' + name];
-	
-	      if (size) {
-	        className += ' ' + cssModule['fa-' + size];
-	      }
-	
-	      if (spin) {
-	        className += ' ' + cssModule['fa-spin'];
-	      }
-	
-	      if (pulse) {
-	        className += ' ' + cssModule['fa-pulse'];
-	      }
-	
-	      if (border) {
-	        className += ' ' + cssModule['fa-border'];
-	      }
-	
-	      if (fixedWidth) {
-	        className += ' ' + cssModule['fa-fw'];
-	      }
-	
-	      if (inverse) {
-	        className += ' ' + cssModule['fa-inverse'];
-	      }
-	
-	      if (flip) {
-	        className += ' ' + cssModule['fa-flip-' + flip];
-	      }
-	
-	      if (rotate) {
-	        className += ' ' + cssModule['fa-rotate-' + rotate];
-	      }
-	
-	      if (stack) {
-	        className += ' ' + cssModule['fa-stack-' + stack];
-	      }
-	
-	      if (this.props.className) {
-	        className += ' ' + this.props.className;
-	      }
-	    } else {
-	      className = 'fa fa-' + name;
-	
-	      if (size) {
-	        className += ' fa-' + size;
-	      }
-	
-	      if (spin) {
-	        className += ' fa-spin';
-	      }
-	
-	      if (pulse) {
-	        className += ' fa-pulse';
-	      }
-	
-	      if (border) {
-	        className += ' fa-border';
-	      }
-	
-	      if (fixedWidth) {
-	        className += ' fa-fw';
-	      }
-	
-	      if (inverse) {
-	        className += ' fa-inverse';
-	      }
-	
-	      if (flip) {
-	        className += ' fa-flip-' + flip;
-	      }
-	
-	      if (rotate) {
-	        className += ' fa-rotate-' + rotate;
-	      }
-	
-	      if (stack) {
-	        className += ' fa-stack-' + stack;
-	      }
-	
-	      if (this.props.className) {
-	        className += ' ' + this.props.className;
-	      }
-	    }
-	    return _react2.default.createElement('span', _extends({}, props, {
-	      className: className
-	    }));
-	  }
-	});
-	module.exports = exports['default'];
-
-/***/ },
 /* 215 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -24161,7 +24044,7 @@
 	var content = __webpack_require__(216);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(211)(content, {});
+	var update = __webpack_require__(212)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -24181,7 +24064,7 @@
 /* 216 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(210)();
+	exports = module.exports = __webpack_require__(211)();
 	// imports
 	
 	
@@ -24989,13 +24872,186 @@
 /* 223 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/* REACT HOT LOADER */ if (false) { (function () { var ReactHotAPI = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-api/modules/index.js"), RootInstanceProvider = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/RootInstanceProvider.js"), ReactMount = require("react/lib/ReactMount"), React = require("react"); module.makeHot = module.hot.data ? module.hot.data.makeHot : ReactHotAPI(function () { return RootInstanceProvider.getRootInstances(ReactMount); }, React); })(); } try { (function () {
+	
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
+	var _react = __webpack_require__(2);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; } /*
+	                                                                                                                                                                                                                               This is a patch of react-fontawesome npm package. Pull request has been made,
+	                                                                                                                                                                                                                               but until it is accepted and available on npm, have this here so that travis-ci tests can pass...
+	                                                                                                                                                                                                                             */
+	
+	/**
+	 * A React component for the font-awesome icon library.
+	 *
+	 *
+	 * @param {Boolean} [border=false] Whether or not to show a border radius
+	 * @param {String} [className] An extra set of CSS classes to add to the component
+	 * @param {Object} [cssModule] Option to pass FontAwesome CSS as a module
+	 * @param {Boolean} [fixedWidth=false] Make buttons fixed width
+	 * @param {String} [flip=false] Flip the icon's orientation.
+	 * @param {Boolean} [inverse=false]Inverse the icon's color
+	 * @param {String} name Name of the icon to use
+	 * @param {Boolean} [pulse=false] Rotate icon with 8 steps (rather than smoothly)
+	 * @param {Number} [rotate] The degress to rotate the icon by
+	 * @param {String} [size] The icon scaling size
+	 * @param {Boolean} [spin=false] Spin the icon
+	 * @param {String} [stack] Stack an icon on top of another
+	 * @module FontAwesome
+	 * @type {ReactClass}
+	 */
+	exports.default = _react2.default.createClass({
+	
+	  displayName: 'FontAwesome',
+	
+	  propTypes: {
+	    border: _react2.default.PropTypes.bool,
+	    className: _react2.default.PropTypes.string,
+	    cssModule: _react2.default.PropTypes.object,
+	    fixedWidth: _react2.default.PropTypes.bool,
+	    flip: _react2.default.PropTypes.oneOf(['horizontal', 'vertical']),
+	    inverse: _react2.default.PropTypes.bool,
+	    name: _react2.default.PropTypes.string.isRequired,
+	    pulse: _react2.default.PropTypes.bool,
+	    rotate: _react2.default.PropTypes.oneOf([90, 180, 270]),
+	    size: _react2.default.PropTypes.oneOf(['lg', '2x', '3x', '4x', '5x']),
+	    spin: _react2.default.PropTypes.bool,
+	    stack: _react2.default.PropTypes.oneOf(['1x', '2x'])
+	  },
+	
+	  render: function render() {
+	    var _props = this.props;
+	    var border = _props.border;
+	    var cssModule = _props.cssModule;
+	    var fixedWidth = _props.fixedWidth;
+	    var flip = _props.flip;
+	    var inverse = _props.inverse;
+	    var name = _props.name;
+	    var pulse = _props.pulse;
+	    var rotate = _props.rotate;
+	    var size = _props.size;
+	    var spin = _props.spin;
+	    var stack = _props.stack;
+	
+	    var props = _objectWithoutProperties(_props, ['border', 'cssModule', 'fixedWidth', 'flip', 'inverse', 'name', 'pulse', 'rotate', 'size', 'spin', 'stack']);
+	
+	    var className = '';
+	    if (cssModule) {
+	      className = cssModule.fa + ' ' + cssModule['fa-' + name];
+	
+	      if (size) {
+	        className += ' ' + cssModule['fa-' + size];
+	      }
+	
+	      if (spin) {
+	        className += ' ' + cssModule['fa-spin'];
+	      }
+	
+	      if (pulse) {
+	        className += ' ' + cssModule['fa-pulse'];
+	      }
+	
+	      if (border) {
+	        className += ' ' + cssModule['fa-border'];
+	      }
+	
+	      if (fixedWidth) {
+	        className += ' ' + cssModule['fa-fw'];
+	      }
+	
+	      if (inverse) {
+	        className += ' ' + cssModule['fa-inverse'];
+	      }
+	
+	      if (flip) {
+	        className += ' ' + cssModule['fa-flip-' + flip];
+	      }
+	
+	      if (rotate) {
+	        className += ' ' + cssModule['fa-rotate-' + rotate];
+	      }
+	
+	      if (stack) {
+	        className += ' ' + cssModule['fa-stack-' + stack];
+	      }
+	
+	      if (this.props.className) {
+	        className += ' ' + this.props.className;
+	      }
+	    } else {
+	      className = 'fa fa-' + name;
+	
+	      if (size) {
+	        className += ' fa-' + size;
+	      }
+	
+	      if (spin) {
+	        className += ' fa-spin';
+	      }
+	
+	      if (pulse) {
+	        className += ' fa-pulse';
+	      }
+	
+	      if (border) {
+	        className += ' fa-border';
+	      }
+	
+	      if (fixedWidth) {
+	        className += ' fa-fw';
+	      }
+	
+	      if (inverse) {
+	        className += ' fa-inverse';
+	      }
+	
+	      if (flip) {
+	        className += ' fa-flip-' + flip;
+	      }
+	
+	      if (rotate) {
+	        className += ' fa-rotate-' + rotate;
+	      }
+	
+	      if (stack) {
+	        className += ' fa-stack-' + stack;
+	      }
+	
+	      if (this.props.className) {
+	        className += ' ' + this.props.className;
+	      }
+	    }
+	    return _react2.default.createElement('span', _extends({}, props, {
+	      className: className
+	    }));
+	  }
+	});
+	
+	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "reactFontAwesome.jsx" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
+
+/***/ },
+/* 224 */
+/***/ function(module, exports, __webpack_require__) {
+
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 	
 	// load the styles
-	var content = __webpack_require__(224);
+	var content = __webpack_require__(225);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(211)(content, {});
+	var update = __webpack_require__(212)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -25012,10 +25068,10 @@
 	}
 
 /***/ },
-/* 224 */
+/* 225 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(210)();
+	exports = module.exports = __webpack_require__(211)();
 	// imports
 	exports.push([module.id, "@import url(https://fonts.googleapis.com/css?family=Montserrat);", ""]);
 	
@@ -25038,7 +25094,7 @@
 	};
 
 /***/ },
-/* 225 */
+/* 226 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* REACT HOT LOADER */ if (false) { (function () { var ReactHotAPI = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-api/modules/index.js"), RootInstanceProvider = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/RootInstanceProvider.js"), ReactMount = require("react/lib/ReactMount"), React = require("react"); module.makeHot = module.hot.data ? module.hot.data.makeHot : ReactHotAPI(function () { return RootInstanceProvider.getRootInstances(ReactMount); }, React); })(); } try { (function () {
@@ -25053,9 +25109,9 @@
 	
 	var _reactRedux = __webpack_require__(176);
 	
-	var _actions = __webpack_require__(226);
+	var _actions = __webpack_require__(227);
 	
-	var _stateChangeButton = __webpack_require__(235);
+	var _stateChangeButton = __webpack_require__(236);
 	
 	var _stateChangeButton2 = _interopRequireDefault(_stateChangeButton);
 	
@@ -25082,7 +25138,7 @@
 	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "currentStateChangeButton.jsx" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
 
 /***/ },
-/* 226 */
+/* 227 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* REACT HOT LOADER */ if (false) { (function () { var ReactHotAPI = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-api/modules/index.js"), RootInstanceProvider = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/RootInstanceProvider.js"), ReactMount = require("react/lib/ReactMount"), React = require("react"); module.makeHot = module.hot.data ? module.hot.data.makeHot : ReactHotAPI(function () { return RootInstanceProvider.getRootInstances(ReactMount); }, React); })(); } try { (function () {
@@ -25092,7 +25148,7 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.distanceRequestComplete = exports.distanceRequest = exports.turnOnTimeout = exports.turnOffRequestComplete = exports.turnOffRequest = exports.turnOnRequestComplete = exports.turnOnRequest = exports.movementRequestComplete = exports.movementRequest = exports.movementTimeout = exports.doorRelayRequestComplete = exports.doorRelayRequest = exports.measuredDistance = undefined;
+	exports.enableDemoMode = exports.initialSetSecureState = exports.distanceRequestComplete = exports.distanceRequest = exports.turnOnTimeout = exports.turnOffRequestComplete = exports.turnOffRequest = exports.turnOnRequestComplete = exports.turnOnRequest = exports.movementRequestComplete = exports.movementRequest = exports.movementTimeout = exports.doorRelayRequestComplete = exports.doorRelayRequest = exports.measuredDistance = undefined;
 	exports.startTurnOnTimer = startTurnOnTimer;
 	exports.unsecureDoor = unsecureDoor;
 	exports.secureDoor = secureDoor;
@@ -25103,10 +25159,11 @@
 	exports.closeAndSecureDoor = closeAndSecureDoor;
 	exports.getDistance = getDistance;
 	exports.startMonitoringDistance = startMonitoringDistance;
+	exports.getInitialSecureState = getInitialSecureState;
 	
-	var _reduxActions = __webpack_require__(227);
+	var _reduxActions = __webpack_require__(228);
 	
-	var _isomorphicFetch = __webpack_require__(233);
+	var _isomorphicFetch = __webpack_require__(234);
 	
 	var _isomorphicFetch2 = _interopRequireDefault(_isomorphicFetch);
 	
@@ -25148,6 +25205,10 @@
 	
 	var distanceRequestComplete = exports.distanceRequestComplete = (0, _reduxActions.createAction)(actionTypes.DISTANCE_REQUEST_COMPLETE);
 	
+	var initialSetSecureState = exports.initialSetSecureState = (0, _reduxActions.createAction)(actionTypes.INITIAL_SET_SECURE_STATE);
+	
+	var enableDemoMode = exports.enableDemoMode = (0, _reduxActions.createAction)(actionTypes.ENABLE_DEMO_MODE);
+	
 	function delay(ms) {
 	  return new Promise(function (resolve) {
 	    setTimeout(resolve, ms);
@@ -25163,7 +25224,17 @@
 	}
 	
 	function unsecureDoor() {
-	  return function (dispatch) {
+	  return function (dispatch, getState) {
+	    if (getState().demo) {
+	      dispatch(turnOnRequest());
+	
+	      var _timeId = Date.now();
+	      dispatch(turnOnRequestComplete({
+	        secure: 0,
+	        id: _timeId
+	      }));
+	      return dispatch(startTurnOnTimer(_timeId));
+	    }
 	    dispatch(turnOnRequest());
 	
 	    var timeId = Date.now();
@@ -25187,7 +25258,12 @@
 	}
 	
 	function secureDoor() {
-	  return function (dispatch) {
+	  return function (dispatch, getState) {
+	    if (getState().demo) {
+	      dispatch(turnOffRequest());
+	      dispatch(turnOffRequestComplete({ secure: 1 }));
+	      return 0;
+	    }
 	    dispatch(turnOffRequest());
 	
 	    return (0, _isomorphicFetch2.default)('' + constants.garageDeviceAddress + constants.garageSecureStateURL, {
@@ -25206,7 +25282,12 @@
 	}
 	
 	function triggerDoorRelay() {
-	  return function (dispatch) {
+	  return function (dispatch, getState) {
+	    if (getState().demo) {
+	      dispatch(doorRelayRequest());
+	      dispatch(doorRelayRequestComplete({ door: 1 }));
+	      return 0;
+	    }
 	    dispatch(doorRelayRequest());
 	
 	    return (0, _isomorphicFetch2.default)('' + constants.garageDeviceAddress + constants.garageDoorStateURL, {
@@ -25225,7 +25306,13 @@
 	}
 	
 	function openDoor() {
-	  return function (dispatch) {
+	  return function (dispatch, getState) {
+	    if (getState().demo) {
+	      dispatch(triggerDoorRelay());
+	      return delay(constants.garageDoorMovementDelay).then(function () {
+	        return dispatch(movementTimeout());
+	      });
+	    }
 	    return dispatch(triggerDoorRelay()).then(function () {
 	      return delay(constants.garageDoorMovementDelay);
 	    }).then(function () {
@@ -25235,7 +25322,13 @@
 	}
 	
 	function closeDoor() {
-	  return function (dispatch) {
+	  return function (dispatch, getState) {
+	    if (getState().demo) {
+	      dispatch(triggerDoorRelay());
+	      return delay(constants.garageDoorMovementDelay).then(function () {
+	        return dispatch(movementTimeout());
+	      });
+	    }
 	    return dispatch(triggerDoorRelay()).then(function () {
 	      return delay(constants.garageDoorMovementDelay);
 	    }).then(function () {
@@ -25264,12 +25357,28 @@
 	
 	function closeAndSecureDoor() {
 	  return function (dispatch, getState) {
+	    if (getState().secure !== 'ON') {
+	      return dispatch(unsecureDoor()).then(function () {
+	        return dispatch(closeDoor());
+	      }).then(function () {
+	        return delay(constants.garageSecureToMoveDelay);
+	      }).then(function () {
+	        var _getState2 = getState();
+	
+	        var door = _getState2.door;
+	
+	        if (door.position === 'CLOSED') {
+	          return dispatch(secureDoor());
+	        }
+	        return {};
+	      });
+	    }
 	    return dispatch(closeDoor()).then(function () {
 	      return delay(constants.garageSecureToMoveDelay);
 	    }).then(function () {
-	      var _getState2 = getState();
+	      var _getState3 = getState();
 	
-	      var door = _getState2.door;
+	      var door = _getState3.door;
 	
 	      if (door.position === 'CLOSED') {
 	        return dispatch(secureDoor());
@@ -25280,7 +25389,10 @@
 	}
 	
 	function getDistance() {
-	  return function (dispatch) {
+	  return function (dispatch, getState) {
+	    if (getState().demo) {
+	      return 0;
+	    }
 	    dispatch(distanceRequest());
 	
 	    return (0, _isomorphicFetch2.default)('' + constants.garageDeviceAddress + constants.garageDistanceURL).then(function (res) {
@@ -25299,7 +25411,10 @@
 	function startMonitoringDistance() {
 	  var iterations = arguments.length <= 0 || arguments[0] === undefined ? -1 : arguments[0];
 	
-	  return function (dispatch) {
+	  return function (dispatch, getState) {
+	    if (getState().demo) {
+	      return 0;
+	    }
 	    if (iterations !== 0) {
 	      setTimeout(function () {
 	        return dispatch(startMonitoringDistance(iterations - 1));
@@ -25309,10 +25424,27 @@
 	  };
 	}
 	
+	function getInitialSecureState() {
+	  return function (dispatch) {
+	    return (0, _isomorphicFetch2.default)('' + constants.garageDeviceAddress + constants.garageSecureStateURL).then(function (res) {
+	      return res.json();
+	    }).then(function (json) {
+	      if (json.secure === 0) {
+	        dispatch(initialSetSecureState('ON'));
+	      } else if (json.secure === 1) {
+	        dispatch(initialSetSecureState('OFF'));
+	      }
+	      return json;
+	    }).catch(function () {
+	      return dispatch(enableDemoMode());
+	    });
+	  };
+	}
+	
 	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "index.js" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
 
 /***/ },
-/* 227 */
+/* 228 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -25322,15 +25454,15 @@
 	});
 	exports.handleActions = exports.handleAction = exports.createAction = undefined;
 	
-	var _createAction = __webpack_require__(228);
+	var _createAction = __webpack_require__(229);
 	
 	var _createAction2 = _interopRequireDefault(_createAction);
 	
-	var _handleAction = __webpack_require__(229);
+	var _handleAction = __webpack_require__(230);
 	
 	var _handleAction2 = _interopRequireDefault(_handleAction);
 	
-	var _handleActions = __webpack_require__(230);
+	var _handleActions = __webpack_require__(231);
 	
 	var _handleActions2 = _interopRequireDefault(_handleActions);
 	
@@ -25341,7 +25473,7 @@
 	exports.handleActions = _handleActions2.default;
 
 /***/ },
-/* 228 */
+/* 229 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -25389,7 +25521,7 @@
 	}
 
 /***/ },
-/* 229 */
+/* 230 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -25427,7 +25559,7 @@
 	}
 
 /***/ },
-/* 230 */
+/* 231 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -25437,15 +25569,15 @@
 	});
 	exports.default = handleActions;
 	
-	var _handleAction = __webpack_require__(229);
+	var _handleAction = __webpack_require__(230);
 	
 	var _handleAction2 = _interopRequireDefault(_handleAction);
 	
-	var _ownKeys = __webpack_require__(231);
+	var _ownKeys = __webpack_require__(232);
 	
 	var _ownKeys2 = _interopRequireDefault(_ownKeys);
 	
-	var _reduceReducers = __webpack_require__(232);
+	var _reduceReducers = __webpack_require__(233);
 	
 	var _reduceReducers2 = _interopRequireDefault(_reduceReducers);
 	
@@ -25467,7 +25599,7 @@
 	}
 
 /***/ },
-/* 231 */
+/* 232 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -25491,7 +25623,7 @@
 	}
 
 /***/ },
-/* 232 */
+/* 233 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -25514,19 +25646,19 @@
 	module.exports = exports["default"];
 
 /***/ },
-/* 233 */
+/* 234 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// the whatwg-fetch polyfill installs the fetch() function
 	// on the global object (window or self)
 	//
 	// Return that as the export for use in Webpack, Browserify etc.
-	__webpack_require__(234);
+	__webpack_require__(235);
 	module.exports = self.fetch.bind(self);
 
 
 /***/ },
-/* 234 */
+/* 235 */
 /***/ function(module, exports) {
 
 	(function(self) {
@@ -25965,7 +26097,7 @@
 
 
 /***/ },
-/* 235 */
+/* 236 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* REACT HOT LOADER */ if (false) { (function () { var ReactHotAPI = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-api/modules/index.js"), RootInstanceProvider = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/RootInstanceProvider.js"), ReactMount = require("react/lib/ReactMount"), React = require("react"); module.makeHot = module.hot.data ? module.hot.data.makeHot : ReactHotAPI(function () { return RootInstanceProvider.getRootInstances(ReactMount); }, React); })(); } try { (function () {
@@ -25980,7 +26112,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _stateChangeButton = __webpack_require__(236);
+	var _stateChangeButton = __webpack_require__(237);
 	
 	var _stateChangeButton2 = _interopRequireDefault(_stateChangeButton);
 	
@@ -26035,16 +26167,16 @@
 	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "stateChangeButton.jsx" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
 
 /***/ },
-/* 236 */
+/* 237 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 	
 	// load the styles
-	var content = __webpack_require__(237);
+	var content = __webpack_require__(238);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(211)(content, {});
+	var update = __webpack_require__(212)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -26061,23 +26193,204 @@
 	}
 
 /***/ },
-/* 237 */
+/* 238 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(210)();
+	exports = module.exports = __webpack_require__(211)();
 	// imports
 	exports.push([module.id, "@import url(https://fonts.googleapis.com/css?family=Montserrat);", ""]);
-	exports.i(__webpack_require__(224), undefined);
+	exports.i(__webpack_require__(225), undefined);
 	
 	// module
-	exports.push([module.id, ".stateChangeButton__btn___1NIv7 {\n  -webkit-border-radius: 11;\n  -moz-border-radius: 11;\n  border-radius: 11px;\n  font-family: Arial;\n  color: #616161;\n  font-size: 50px;\n  background: #ffffff;\n  padding: 10px 20px 10px 20px;\n  border: solid #3a97d1 2px;\n  text-decoration: none;\n  user-select: none;\n  outline: 0;\n}\n\n.stateChangeButton__btn___1NIv7:hover {\n  background: #fafafa;\n  background-image: -webkit-linear-gradient(top, #fafafa, #f7f7f7);\n  background-image: -moz-linear-gradient(top, #fafafa, #f7f7f7);\n  background-image: -ms-linear-gradient(top, #fafafa, #f7f7f7);\n  background-image: -o-linear-gradient(top, #fafafa, #f7f7f7);\n  background-image: linear-gradient(to bottom, #fafafa, #f7f7f7);\n  text-decoration: none;\n}\n\n.stateChangeButton__box___2frtV {\n  padding: 40px 0 0 0;\n  max-width: " + __webpack_require__(224).locals["width"] + ";\n  margin: 0 auto;\n  text-decoration: none;  \n  overflow: auto;\n  text-align: center;\n}", ""]);
+	exports.push([module.id, ".stateChangeButton__btn___1NIv7 {\n  -webkit-border-radius: 11;\n  -moz-border-radius: 11;\n  border-radius: 11px;\n  font-family: Arial;\n  color: #616161;\n  font-size: 50px;\n  background: #ffffff;\n  padding: 10px 20px 10px 20px;\n  border: solid #3a97d1 2px;\n  text-decoration: none;\n  user-select: none;\n  outline: 0;\n}\n\n.stateChangeButton__btn___1NIv7:hover {\n  background: #fafafa;\n  background-image: -webkit-linear-gradient(top, #fafafa, #f7f7f7);\n  background-image: -moz-linear-gradient(top, #fafafa, #f7f7f7);\n  background-image: -ms-linear-gradient(top, #fafafa, #f7f7f7);\n  background-image: -o-linear-gradient(top, #fafafa, #f7f7f7);\n  background-image: linear-gradient(to bottom, #fafafa, #f7f7f7);\n  text-decoration: none;\n}\n\n.stateChangeButton__box___2frtV {\n  padding: 40px 0 0 0;\n  max-width: " + __webpack_require__(225).locals["width"] + ";\n  margin: 0 auto;\n  text-decoration: none;  \n  overflow: auto;\n  text-align: center;\n}", ""]);
 	
 	// exports
 	exports.locals = {
 		"display": "'./stateDisplay.css'",
-		"width": "" + __webpack_require__(224).locals["width"] + "",
+		"width": "" + __webpack_require__(225).locals["width"] + "",
 		"btn": "stateChangeButton__btn___1NIv7",
 		"box": "stateChangeButton__box___2frtV"
+	};
+
+/***/ },
+/* 239 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* REACT HOT LOADER */ if (false) { (function () { var ReactHotAPI = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-api/modules/index.js"), RootInstanceProvider = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/RootInstanceProvider.js"), ReactMount = require("react/lib/ReactMount"), React = require("react"); module.makeHot = module.hot.data ? module.hot.data.makeHot : ReactHotAPI(function () { return RootInstanceProvider.getRootInstances(ReactMount); }, React); })(); } try { (function () {
+	
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _reactRedux = __webpack_require__(176);
+	
+	var _demoIndicator = __webpack_require__(240);
+	
+	var _demoIndicator2 = _interopRequireDefault(_demoIndicator);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var mapStateToProps = function mapStateToProps(state) {
+	  return {
+	    demo: state.demo
+	  };
+	};
+	
+	var CurrentDemoIndicator = (0, _reactRedux.connect)(mapStateToProps)(_demoIndicator2.default);
+	
+	exports.default = CurrentDemoIndicator;
+	
+	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "currentDemoIndicator.jsx" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
+
+/***/ },
+/* 240 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* REACT HOT LOADER */ if (false) { (function () { var ReactHotAPI = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-api/modules/index.js"), RootInstanceProvider = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/RootInstanceProvider.js"), ReactMount = require("react/lib/ReactMount"), React = require("react"); module.makeHot = module.hot.data ? module.hot.data.makeHot : ReactHotAPI(function () { return RootInstanceProvider.getRootInstances(ReactMount); }, React); })(); } try { (function () {
+	
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _react = __webpack_require__(2);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _classnames = __webpack_require__(241);
+	
+	var _classnames2 = _interopRequireDefault(_classnames);
+	
+	var _demo = __webpack_require__(242);
+	
+	var _demo2 = _interopRequireDefault(_demo);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+	
+	var DemoIndicator = function DemoIndicator(demo) {
+	  var _classNames;
+	
+	  var text = '';
+	  if (demo.demo === true) {
+	    text = 'Demo mode';
+	  }
+	  var style = (0, _classnames2.default)((_classNames = {}, _defineProperty(_classNames, '' + _demo2.default.base, true), _defineProperty(_classNames, '' + _demo2.default.fade, true), _defineProperty(_classNames, '' + _demo2.default.fadein, demo.demo), _classNames));
+	  return _react2.default.createElement(
+	    'h2',
+	    { className: style },
+	    text
+	  );
+	};
+	
+	DemoIndicator.propTypes = {
+	  demo: _react.PropTypes.bool
+	};
+	
+	exports.default = DemoIndicator;
+	
+	/* REACT HOT LOADER */ }).call(this); } finally { if (false) { (function () { var foundReactClasses = module.hot.data && module.hot.data.foundReactClasses || false; if (module.exports && module.makeHot) { var makeExportsHot = require("/Users/calsmi/Documents/Development/javascript/garageController/node_modules/react-hot-loader/makeExportsHot.js"); if (makeExportsHot(module, require("react"))) { foundReactClasses = true; } var shouldAcceptModule = true && foundReactClasses; if (shouldAcceptModule) { module.hot.accept(function (err) { if (err) { console.error("Cannot not apply hot update to " + "demoIndicator.jsx" + ": " + err.message); } }); } } module.hot.dispose(function (data) { data.makeHot = module.makeHot; data.foundReactClasses = foundReactClasses; }); })(); } }
+
+/***/ },
+/* 241 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
+	  Copyright (c) 2016 Jed Watson.
+	  Licensed under the MIT License (MIT), see
+	  http://jedwatson.github.io/classnames
+	*/
+	/* global define */
+	
+	(function () {
+		'use strict';
+	
+		var hasOwn = {}.hasOwnProperty;
+	
+		function classNames () {
+			var classes = [];
+	
+			for (var i = 0; i < arguments.length; i++) {
+				var arg = arguments[i];
+				if (!arg) continue;
+	
+				var argType = typeof arg;
+	
+				if (argType === 'string' || argType === 'number') {
+					classes.push(arg);
+				} else if (Array.isArray(arg)) {
+					classes.push(classNames.apply(null, arg));
+				} else if (argType === 'object') {
+					for (var key in arg) {
+						if (hasOwn.call(arg, key) && arg[key]) {
+							classes.push(key);
+						}
+					}
+				}
+			}
+	
+			return classes.join(' ');
+		}
+	
+		if (typeof module !== 'undefined' && module.exports) {
+			module.exports = classNames;
+		} else if (true) {
+			// register as 'classnames', consistent with npm package name
+			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function () {
+				return classNames;
+			}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+		} else {
+			window.classNames = classNames;
+		}
+	}());
+
+
+/***/ },
+/* 242 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+	
+	// load the styles
+	var content = __webpack_require__(243);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(212)(content, {});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(false) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept("!!./../node_modules/css-loader/index.js?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!./../node_modules/postcss-loader/index.js!./demo.css", function() {
+				var newContent = require("!!./../node_modules/css-loader/index.js?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!./../node_modules/postcss-loader/index.js!./demo.css");
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
+
+/***/ },
+/* 243 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(211)();
+	// imports
+	exports.push([module.id, "@import url(https://fonts.googleapis.com/css?family=Montserrat);", ""]);
+	
+	// module
+	exports.push([module.id, ".demo__base___2wvPr {\n\ttext-align: center;\n\tfont-family: 'Montserrat', sans-serif;\n\tfont-size: 30px;\n\tposition: absolute;\n\tright: 10px;\n}\n\n.demo__fade___3TcJX {\n\t-webkit-opacity: 0;\n\t-mos-opacity: 0;\n\topacity: 0;\n\t-webkit-transition: all 1s ease;\n\t-moz-transition: all 1s ease;\n\t-ms-transition: all 1s ease;\n\t-o-transition: all 1s ease;\n\ttransition: all 1s ease;\n}\n\n.demo__fadein___155uv {\n\t-webkit-opacity: 1;\n\t-mos-opacity: 1;\n\topacity: 1;\n}", ""]);
+	
+	// exports
+	exports.locals = {
+		"base": "demo__base___2wvPr",
+		"fade": "demo__fade___3TcJX",
+		"fadein": "demo__fadein___155uv"
 	};
 
 /***/ }
